@@ -1,0 +1,437 @@
+/*************************************************************************************
+* Author: Yoav Ben Raphael                                                           *
+* Date: June 6 2022                                                                  *
+* Program Used: C++ in Repl.com                      	                               *
+* Purpose: Part 3 Final Project in C++ Repl                                          *
+* Data dictionary:                                                                   *
+* //Functions------------------------------------------------------------------------*
+*      int ranWord........... Randomply pick an index of the array                   *
+*string stringMani...........Censors and manipulates word based on user input        *
+* void stringPrint...........Prints the manipulated word                             *
+*  string getGuess...........Takes user input                                        *
+*   int checkScore...........Actively checks how many points the user has left       *
+*void printHangman...........  Prints hangman ascii art based off user's points      *
+*int checkGuess...........Actively keeps trach of how many times a letter was guessd *
+* //Variables------------------------------------------------------------------------*
+*           wordArr [10]......Has a list of all words                                *
+*           guessLetter [26]......List of letters guessed                            *
+*           wordMani ...........Holds the manipulated word                           *
+*           guess ........... Holds the user's guess                                 *
+*           guesses........... Counter of how many guesses were made                 *
+*           points........... Counter that keeps track of points left                *
+*  wordArrIndex........... Holds the number of the choice in the array               *
+* guessUsed.......... Keeps track of how many times a letter was used                *
+*        win.......... Counter that keeps track of how many games the player won     *
+**************************************************************************************/
+
+//Brings in needed Libraries
+#include <iostream>
+#include <stdio.h>
+#include <time.h>
+#include<cctype>
+#include<string>
+
+using namespace std;
+
+  //Declaring the functions
+  int ranWord (string wordArr[]); 
+  string stringMani(string wordArr[], int wordArrIndex, string guess,string wordMani, string guessLetter[]); 
+  void stringPrint(string wondMani, string guessLetter[]); 
+  string getGuess();
+  int checkScore(string wordArr[], int wordArrIndex, string guess, int points);
+  void printHangman (int points);
+  int checkGuess (string guessLetter[], string guess);
+
+int main() 
+{
+  //Declaring array full of hangman words
+  string wordArr [10] = {"digital","processor","memmory","keyboard", 
+  "screen","compiler","storage" ,"mouse","cyber","graphics"};
+
+  //Declaring variables
+  int win=0;
+  string cont ="yes";
+
+  //Hangman sign
+  cout<<"\033[96m"<<"====================";
+  cout<<"\n======";
+  cout<<"\033[97m"<<"HANGM웃N";
+  cout<<"\033[96m"<<"======";
+  cout<<"\n====================";
+  cout<< "\033[0m";
+  
+  //Loops while the user wants to continue
+  while(cont == "yes")
+  {
+    //Declaring variables so they can reset
+  	string guessLetter [26], wordMani, guess; 
+  	int guesses=0, points=9, wordArrIndex, guessUsed;
+    
+    //Sets wordArrIndex as the randomly chosen word
+	  wordArrIndex = ranWord(wordArr);
+
+    //Sets wordMani as all the changes I made to the string
+    wordMani = stringMani(wordArr, wordArrIndex, guess, wordMani,guessLetter);
+
+    //Prints the censored word and the guessed letters
+    stringPrint (wordMani, guessLetter);
+
+    //Runs while the player did not lose
+		while(points > 0)
+		{
+		  //Sets guess as the guess  
+      guess = getGuess();
+
+      //Lets guessUsed know if the letter was guessed more than once 
+			guessUsed = checkGuess (guessLetter, guess);
+
+      //If the user has not guessed the letter yet
+      if (guessUsed ==0)
+      {
+        //Sets wordMani as all the changes I made to the string
+        wordMani = stringMani (wordArr, wordArrIndex, guess, wordMani,guessLetter);
+
+        //Tells how many points are left
+			  points = checkScore (wordArr, wordArrIndex, guess, points);
+
+        //Checks for multiple guesses of the same letter
+        guessLetter[guesses]=guess;
+
+        //Increases guesses counter
+        guesses ++;
+
+        //Prints maninpulated word and list of the guessed letters
+        stringPrint (wordMani, guessLetter);
+
+        //Prints the hangman ascii art based on points
+			  printHangman (points);
+
+        //If user won
+        if (wordArr[wordArrIndex]==wordMani)
+        {
+          cout <<"\nYou win!!!\n";
+          points = -1;
+          win++;
+        }
+      }
+    			 
+		}
+    //Asks user to play again
+    cout << "Do you want to continue guessing? (type yes/no) -> ";
+    cin >> cont;
+    if (cont=="no")
+    {
+      cout << "\033[94m"<<"\nThanks for playing!!!";
+      cout<< "\033[92m"<<"\nYou won: "<<win<<" games"; 
+    }
+  }		
+		
+}
+
+//Randomly picks an index for the array
+int ranWord(string wordArr[])
+{
+  // Makes the number more random
+  srand((int)time(0));
+
+  //Declaring variables
+  int arrIndex;
+
+  //Randomly picks a number between 9 and 0 because arrays start counting in 0
+  arrIndex = rand() % 9 + 0;
+
+  //Returns the index of the chosen word
+  return (arrIndex);
+}
+
+//Gets input from the user
+string getGuess() 
+{
+  //Declaring variables
+  string guess;
+  cout << "\nGuess a letter-> ";
+  cin >> guess;
+
+  //Returning the guess
+  return (guess);
+}
+
+//Makes changes to string
+string stringMani(string wordArr[], int wordArrIndex, string guess,string wordMani,string guessLetter[])
+{
+  //Declaring variables
+  string selWord;
+  int pos, length, guessUsed=0,i;
+  selWord = wordArr[wordArrIndex];
+  
+  //If there is not a guess yet
+  if (guess.empty()) 
+  {
+    length = selWord.length();
+    wordMani = wordMani.assign(length, '*');
+    
+    //Returning the manipulated word
+    return (wordMani);
+  }
+  
+  //Checks if the letter was guessed
+  for (i=0;i<26;i++)
+    {
+      if (guessLetter[i] == guess)
+      {
+        cout << "\nYou already guessed this letter\n";
+
+        //Returning the manipulated word
+        return (wordMani);
+      }
+    }
+  
+  //Sets the position as the location of the guess
+  pos = selWord.find(guess);
+
+  //If the guess is correct
+  if (pos > -1) 
+  {
+    cout << "\nCorrect guess!!\n\n";
+
+    //Find the length of the censored word
+    length = wordMani.length();
+
+    //Declaring an array for the position in the length of the censored word
+    int pos[length];
+
+    //Loop that will run until i gets to the length
+    for (i=0;i<length;i++)
+      {
+        //If the selected word in posiotion i is equal to guess in position 0 
+        if(selWord[i] == guess[0])
+        {
+          //Set position i to i
+          pos[i] = i;
+        }
+        else
+        {
+          //Set position i to -1
+          pos[i] = -1;
+        }
+      }
+
+    //Loop that will run until i gets to the length
+    for (i=0;i<length;i++)
+      {
+        //If the guess was right
+        if (pos[i]>-1)
+        {
+           //Replace all asterisk in the instances of the guess
+           wordMani = wordMani.replace(pos[i], 1, guess);
+        }
+      } 
+    return (wordMani);
+  }
+  //If the guess is not correct  
+  else 
+  {
+    cout << "\nWrong guess\n";
+    
+    //Returning the manipulated word
+    return (wordMani);
+  }
+}
+
+//Checks how many points are left
+int checkScore (string wordArr[], int wordArrIndex, string guess, int points)
+{
+  //Declaring variables
+  int pos;
+  string selWord;
+
+  //Setting the select word as the index of the array
+  selWord = wordArr[wordArrIndex];
+
+  //Seting the position as the location of the guess in the word
+  pos = selWord.find(guess);
+
+  //If the guess is incorrect take off a point
+	if (pos == -1)
+	{
+		points --;
+	}
+  //Returns the amount of points left
+  return(points);
+}
+
+//Prints the guessed word list and the censored word
+void stringPrint (string wordMani, string guessLetter[])
+{
+  //Declaring variable
+  int i;
+  
+  //Prints censored word
+  cout << "\nGuess the word: "<<wordMani;
+  cout << "\nGuessed letters:\n";
+  
+  //Runs 26 times for all 26 letters
+  for (i=0;i<26;i++)
+    {
+       
+      cout << guessLetter[i] << " ";
+      
+    }
+  cout << "\n";
+}
+
+//Prints the hangman ascii art based off how many points are left
+void printHangman (int points)
+{
+  //prints how much tries the user has left
+  cout<<"\nYou have "<<points<<" tries left";
+  
+  //prints if the user has 9 tries left
+  if (points == 9)
+  {
+    cout<<"\n   ---------";  
+    cout<<"\n   |";  
+    cout<<"\n   |";
+    cout<<"\n   |";
+    cout<<"\n   |";  
+    cout<<"\n   |";
+    cout<<"\n   |";
+    cout<<"\n_______";  
+  }
+  //prints if the user has 8 tries left
+  else if (points == 8)
+  {
+    cout<<"\n   ---------";  
+    cout<<"\n   |       |";  
+    cout<<"\n   |";
+    cout<<"\n   |";
+    cout<<"\n   |";  
+    cout<<"\n   |";
+    cout<<"\n   |";
+    cout<<"\n_______";  
+  }
+  //prints if the user has 7 tries left  
+  else if (points == 7)
+  {
+    cout<<"\n   ---------";  
+    cout<<"\n   |       |";  
+    cout<<"\n   |      (_)";
+    cout<<"\n   |";
+    cout<<"\n   |";  
+    cout<<"\n   |";
+    cout<<"\n   |";
+    cout<<"\n_______";  
+  }
+  //prints if the user has 6 tries left  
+  else if (points == 6)
+  {
+    cout<<"\n   ---------";  
+    cout<<"\n   |       |";  
+    cout<<"\n   |      (_)";
+    cout<<"\n   |       |";
+    cout<<"\n   |";  
+    cout<<"\n   |";
+    cout<<"\n   |";
+    cout<<"\n_______";  
+  }
+  //prints if the user has 5 tries left  
+  else if (points == 5)
+  {
+    cout<<"\n   ---------";  
+    cout<<"\n   |       |";  
+    cout<<"\n   |      (_)";
+    cout<<"\n   |      \\|";
+    cout<<"\n   |";  
+    cout<<"\n   |";
+    cout<<"\n   |";
+    cout<<"\n_______";  
+  }
+  //prints if the user has 4 tries left  
+  else if (points == 4)
+  {
+    cout<<"\n   ---------";  
+    cout<<"\n   |       |";  
+    cout<<"\n   |      (_)";
+    cout<<"\n   |      \\|/";
+    cout<<"\n   |";  
+    cout<<"\n   |";
+    cout<<"\n   |";
+    cout<<"\n_______";  
+  }
+  //prints if the user has 3 tries left
+  else if (points == 3)
+  {
+    cout<<"\n   ---------";  
+    cout<<"\n   |       |";  
+    cout<<"\n   |      (_)";
+    cout<<"\n   |      \\|/";
+    cout<<"\n   |       |";  
+    cout<<"\n   |";
+    cout<<"\n   |";
+    cout<<"\n_______"; 
+  }
+  //prints if the user has 2 tries left  
+  else if (points == 2)
+  {
+    cout<<"\n   ---------";  
+    cout<<"\n   |       |";  
+    cout<<"\n   |      (_)";
+    cout<<"\n   |      \\|/";
+    cout<<"\n   |       |";  
+    cout<<"\n   |      /";
+    cout<<"\n   |";
+    cout<<"\n_______";  
+  }
+  //prints if the user has 1 tries left
+  else if (points == 1)
+  {
+    cout<<"\n   ---------";  
+    cout<<"\n   |       |";  
+    cout<<"\n   |      (_)";
+    cout<<"\n   |      \\|/";
+    cout<<"\n   |       |";  
+    cout<<"\n   |      / \\";
+    cout<<"\n   |";
+    cout<<"\n_______";  
+  }
+  //prints if the user has no tries left
+  else
+  {
+    cout<< "\033[31m";
+    cout<<"\n   ---------";  
+    cout<<"\n   |       |";  
+    cout<<"\n   |      (_)";
+    cout<<"\n   |      /|\\";
+    cout<<"\n   |       |";  
+    cout<<"\n   |      / \\";
+    cout<<"\n   |";
+    cout<<"\n_______";  
+    cout<< "\033[91m"<<"\n\nNo more tries, you lose\n\n";
+    cout<< "\033[0m";
+  }
+}
+
+//Checks if the user already guessed the letter
+int checkGuess (string guessLetter[], string guess)
+{
+  //Declaring Variables
+  int guessUsed =0, i;
+
+  //Loop that goes 26 times for all letters in the alphabet
+  for (i=0;i<26;i++)
+    {
+      //If the code recognizes that the lette was used
+      if (guessLetter[i] == guess)
+      {
+        //set guessUsed to 1 so no points are taken off
+        guessUsed = 1;
+        cout << "\nYou already guessed this letter. Please try again.\n";
+        
+        //Returning if the letter was already used 
+        return (guessUsed);
+      }
+    }
+  
+  //Returning if the letter was already used 
+  return (guessUsed);  
+}

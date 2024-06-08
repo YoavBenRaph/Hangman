@@ -2,8 +2,8 @@
 Text Based Hangman Game
 
 -List of 10 words
--Word is randomly chosen
--Word is put on the screen with *
+Word is randomly chosen
+Word is put on the screen with *
 
 -User guesses letter
 -Program lets you know the letter is in the word or not
